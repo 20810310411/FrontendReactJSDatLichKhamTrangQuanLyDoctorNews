@@ -178,4 +178,14 @@ export const findAllLichHen = (query) => {
     return axios.get(URL_BACKEND)
 }
 
-
+// -----------------------
+export const xacNhanLich = (id, trangThaiXacNhan) => {
+    return axios.put('/api/doctor/edit-xacnhan-lich', {
+        id, trangThaiXacNhan
+    })
+}
+export const updateTTBN = ( _id, benhAn, trangThaiKham) => {
+    return axios.put('/api/doctor/edit-thongtinkham', {
+         _id, benhAn, trangThaiKham
+    })
+}
