@@ -383,89 +383,91 @@ const QuanLyLichHen = () => {
 
     return (
         <>
-            <Row>
-                    <Col xs={24} sm={12} md={24} span={24}>
-                    <SearchComponent
-                        onSearch={(value) => {
-                            setSearchValue(value);  // Cập nhật giá trị tìm kiếm
-                            findAllOrder(value);    // Gọi hàm tìm kiếm khi có thay đổi
-                        }}
-                        placeholder="Tìm bệnh nhân theo tên hoặc email hoặc số điện thoại"
-                        />
-                    <Table 
-                        onChange={onChange}
-                        pagination={{
-                            current: current,
-                            pageSize: pageSize,
-                            showSizeChanger: true,
-                            total: total,
-                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} lịch hẹn</div>) }
-                        }}
-                        //  pagination={false}  // Tắt phân trang mặc định của Table
-                        loading={loadingOrder} 
-                        columns={columns} 
-                        dataSource={dataOrder} /> 
-                    </Col>
-
-                    <ViewLichHen
-                    openViewDH={openViewDH}
-                    dataViewDH={dataViewDH}
-                    setOpenViewDH={setOpenViewDH}
-                    setDataViewDH={setDataViewDH}
+            <Row gutter={[20,10]}>
+                <Col xs={24} sm={12} md={24} span={24}>
+                <SearchComponent
+                    onSearch={(value) => {
+                        setSearchValue(value);  // Cập nhật giá trị tìm kiếm
+                        findAllOrder(value);    // Gọi hàm tìm kiếm khi có thay đổi
+                    }}
+                    placeholder="Tìm bệnh nhân theo tên hoặc email hoặc số điện thoại"
                     />
+                </Col>
+                <Col xs={24} sm={12} md={24} span={24}>                
+                <Table 
+                    onChange={onChange}
+                    pagination={{
+                        current: current,
+                        pageSize: pageSize,
+                        showSizeChanger: true,
+                        total: total,
+                        showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} lịch hẹn</div>) }
+                    }}
+                    //  pagination={false}  // Tắt phân trang mặc định của Table
+                    loading={loadingOrder} 
+                    columns={columns} 
+                    dataSource={dataOrder} /> 
+                </Col>
 
-                    <Modal 
-                        title={`Chỉnh sửa lịch khám bệnh cho bệnh nhân ${dataBenhNhan?.patientName}`}
-                        open={isModalOpen} 
-                        onOk={() => form.submit()} 
-                        style={{marginTop: "50px"}}
-                        width={700} 
-                        maskClosable={false}
-                        loading={loadingEditKhamxONG}
-                        onCancel={() => setIsModalOpen(false)}>
-                            <Form
-                            form={form}
-                            onFinish={handleOk}  
-                            >
-                                <Divider/>
-                                <Row gutter={[20,85]}>
-                                    <Form.Item hidden name="_id" ><Input /></Form.Item>
-                                    <Col span={24} md={24} sm={24} xs={24}>
-                                        <Form.Item
-                                            layout="vertical"
-                                            label="Chi tiết bệnh án"
-                                            name="benhAn"
-                                            // rules={[
-                                            //     {
-                                            //         required: true,
-                                            //         message: 'Vui lòng nhập đầy đủ thông tinị!',
-                                            //     },                                        
-                                            // ]}
-                                        >
-                                        <Input.TextArea row={5} style={{height: "100px"}}/>
-                                        </Form.Item>
-                                    </Col>
+                <ViewLichHen
+                openViewDH={openViewDH}
+                dataViewDH={dataViewDH}
+                setOpenViewDH={setOpenViewDH}
+                setDataViewDH={setDataViewDH}
+                />
 
-                                    <Col span={24} md={24} sm={24} xs={24}>
-                                        <Form.Item
-                                            layout="vertical"
-                                            label="Trạng thái khám bệnh"
-                                            name="trangThaiKham"                                    
-                                        >
-                                        <Switch 
-                                        style={{width: "150px"}}
-                                            checked={checkKham}  // Kiểm tra nếu trạng thái là "Đã xác nhận" để bật switch
-                                            onChange={(checked) => onChangeCheckKham(checked)} 
-                                            checkedChildren="Đã khám xong"
-                                            unCheckedChildren="Chưa được khám"
-                                        />
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-                            </Form>
-                            <br/>
-                    </Modal>
-            </Row>
+                <Modal 
+                    title={`Chỉnh sửa lịch khám bệnh cho bệnh nhân ${dataBenhNhan?.patientName}`}
+                    open={isModalOpen} 
+                    onOk={() => form.submit()} 
+                    style={{marginTop: "50px"}}
+                    width={700} 
+                    maskClosable={false}
+                    loading={loadingEditKhamxONG}
+                    onCancel={() => setIsModalOpen(false)}>
+                        <Form
+                        form={form}
+                        onFinish={handleOk}  
+                        >
+                            <Divider/>
+                            <Row gutter={[20,85]}>
+                                <Form.Item hidden name="_id" ><Input /></Form.Item>
+                                <Col span={24} md={24} sm={24} xs={24}>
+                                    <Form.Item
+                                        layout="vertical"
+                                        label="Chi tiết bệnh án"
+                                        name="benhAn"
+                                        // rules={[
+                                        //     {
+                                        //         required: true,
+                                        //         message: 'Vui lòng nhập đầy đủ thông tinị!',
+                                        //     },                                        
+                                        // ]}
+                                    >
+                                    <Input.TextArea row={5} style={{height: "100px"}}/>
+                                    </Form.Item>
+                                </Col>
+
+                                <Col span={24} md={24} sm={24} xs={24}>
+                                    <Form.Item
+                                        layout="vertical"
+                                        label="Trạng thái khám bệnh"
+                                        name="trangThaiKham"                                    
+                                    >
+                                    <Switch 
+                                    style={{width: "150px"}}
+                                        checked={checkKham}  // Kiểm tra nếu trạng thái là "Đã xác nhận" để bật switch
+                                        onChange={(checked) => onChangeCheckKham(checked)} 
+                                        checkedChildren="Đã khám xong"
+                                        unCheckedChildren="Chưa được khám"
+                                    />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+                        </Form>
+                        <br/>
+                </Modal>
+        </Row>
         </>
     )
 }

@@ -173,15 +173,17 @@ const BenhNhanCuaToi = () => {
     }   
 
   return (
-    <Row>
+    <Row gutter={[20,10]}>
         <Col xs={24} sm={12} md={24} span={24}>
-        <SearchComponent
-            onSearch={(value) => {
-                setSearchValue(value);  // Cập nhật giá trị tìm kiếm
-                findAllOrder(value);    // Gọi hàm tìm kiếm khi có thay đổi
-            }}
-            placeholder="Tìm bệnh nhân theo tên hoặc email hoặc số điện thoại"
-            />
+            <SearchComponent
+                onSearch={(value) => {
+                    setSearchValue(value);  // Cập nhật giá trị tìm kiếm
+                    findAllOrder(value);    // Gọi hàm tìm kiếm khi có thay đổi
+                }}
+                placeholder="Tìm bệnh nhân theo tên hoặc email hoặc số điện thoại"
+                />         
+        </Col>
+        <Col xs={24} sm={12} md={24} span={24}>
         <Table 
             onChange={onChange}
             // pagination={{

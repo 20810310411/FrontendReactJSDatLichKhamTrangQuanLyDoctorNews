@@ -23,7 +23,7 @@ const SearchComponent = ({ onSearch, placeholder }) => {
 
   return (
     <Search
-        style={{height: "50px"}}
+        style={{ border: "1px solid blue", borderRadius:"5px"}}
         placeholder={placeholder} 
         onSearch={onSearch} 
         enterButton 
