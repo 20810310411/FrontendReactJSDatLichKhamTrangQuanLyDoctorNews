@@ -18,6 +18,8 @@ const QuanLyLichHen = () => {
     const [pageSize, setPageSize] = useState(5)
     const [total, setTotal] = useState(0)
     const [loadingOrder, setLoadingOrder] = useState(false);
+    const [loadingEditKhamxONG, setLoadingEditKhamxONG] = useState(false);
+    const [loadingXacNhanOrder, setLoadingXacNhanOrder] = useState(false);
     const [sortQuery, setSortQuery] = useState("sort=createdAt");
 
     const [openViewDH, setOpenViewDH] = useState(false)
@@ -173,7 +175,8 @@ const QuanLyLichHen = () => {
                                     color={thanhToanTag.color}
                                     icon={thanhToanTag.icon}
                                 >
-                                    {record.trangThai}
+                                    {/* {record.trangThai} */}
+                                    Không Hủy
                                 </Tag>
 
                                 {/* <Tag
@@ -297,6 +300,7 @@ const QuanLyLichHen = () => {
                     </Tooltip>
                            
                 <Switch 
+                    loading={loadingXacNhanOrder}
                     checked={record.trangThaiXacNhan}  // Kiểm tra nếu trạng thái là "Đã xác nhận" để bật switch
                     onChange={(checked) => onChangeCheck(checked, record)} 
                     checkedChildren="Đã xác nhận"
@@ -313,6 +317,7 @@ const QuanLyLichHen = () => {
         const updatedStatus = checked ? true : false;  // "Đã xác nhận" khi bật, "Chờ xác nhận" khi tắt
         
         try {
+            setLoadingXacNhanOrder(true)
             const response = await xacNhanLich(record._id, updatedStatus)
     
             if (response.data) {
@@ -325,6 +330,7 @@ const QuanLyLichHen = () => {
     
                 message.success("Cập nhật trạng thái thành công!");
             }
+            setLoadingXacNhanOrder(false)
         } catch (error) {
             console.error("Lỗi khi cập nhật trạng thái:", error);
             message.error("Cập nhật trạng thái thất bại!");
@@ -354,6 +360,7 @@ const QuanLyLichHen = () => {
         const { _id, benhAn, trangThaiKham } = values
         console.log("benhAn, trangThaiKham: ", benhAn, trangThaiKham);
 
+        setLoadingEditKhamxONG(true)
         let res = await updateTTBN(_id, benhAn, trangThaiKham)
         if(res){
             message.success(res.message);
@@ -365,7 +372,8 @@ const QuanLyLichHen = () => {
                 message: 'Đã có lỗi xảy ra',
                 description: res.message
             })
-        }  
+        } 
+        setLoadingEditKhamxONG(false) 
     }
 
     return (
@@ -401,6 +409,7 @@ const QuanLyLichHen = () => {
                         style={{marginTop: "50px"}}
                         width={700} 
                         maskClosable={false}
+                        loading={loadingEditKhamxONG}
                         onCancel={() => setIsModalOpen(false)}>
                             <Form
                             form={form}
@@ -414,12 +423,12 @@ const QuanLyLichHen = () => {
                                             layout="vertical"
                                             label="Chi tiết bệnh án"
                                             name="benhAn"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    message: 'Vui lòng nhập đầy đủ thông tinị!',
-                                                },                                        
-                                            ]}
+                                            // rules={[
+                                            //     {
+                                            //         required: true,
+                                            //         message: 'Vui lòng nhập đầy đủ thông tinị!',
+                                            //     },                                        
+                                            // ]}
                                         >
                                         <Input.TextArea row={5} style={{height: "100px"}}/>
                                         </Form.Item>
