@@ -5,6 +5,9 @@ import { FaEye } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { findAllLichHenByDoctor } from "../../services/doctorAPI";
 import DrawerBN from "./Drawer";
+import { Input } from 'antd';
+import SearchComponent from "../Search/SearchComponent";
+const { Search } = Input;
 
 const BenhNhanCuaToi = () => {
 
@@ -17,6 +20,7 @@ const BenhNhanCuaToi = () => {
     const [loadingOrder, setLoadingOrder] = useState(false);
     const [sortQuery, setSortQuery] = useState("sort=createdAt");
     const user = useSelector(state => state.accountDoctor.user._id)
+    const [searchValue, setSearchValue] = useState(''); // State lưu giá trị tìm kiếm
 
     const findAllOrder = async () => {
         setLoadingOrder(true)
@@ -28,6 +32,9 @@ const BenhNhanCuaToi = () => {
         if (user) {
             query += `&idDoctor=${encodeURIComponent(user)}`;
         } 
+        if (searchValue) {
+            query += `&search=${encodeURIComponent(searchValue)}`;  // Thêm giá trị tìm kiếm vào query
+        }
         let res = await findAllLichHenByDoctor(query)
         console.log("res benhnhancuatoi: ", res);
         if(res && res.data) {
@@ -39,7 +46,7 @@ const BenhNhanCuaToi = () => {
 
     useEffect(() => {
         findAllOrder()
-    },[user, current, pageSize, sortQuery])
+    },[user, current, pageSize, sortQuery, searchValue])
 
     const columns = [
         {
@@ -163,11 +170,18 @@ const BenhNhanCuaToi = () => {
         }
     
         window.scrollTo({ top: 80, behavior: "smooth" });
-    }
+    }   
 
   return (
     <Row>
         <Col xs={24} sm={12} md={24} span={24}>
+        <SearchComponent
+            onSearch={(value) => {
+                setSearchValue(value);  // Cập nhật giá trị tìm kiếm
+                findAllOrder(value);    // Gọi hàm tìm kiếm khi có thay đổi
+            }}
+            placeholder="Tìm bệnh nhân theo tên hoặc email hoặc số điện thoại"
+            />
         <Table 
             onChange={onChange}
             // pagination={{

@@ -10,6 +10,7 @@ import React from "react";
 import { RiEdit2Fill } from "react-icons/ri";
 import { updateTTBN, xacNhanLich } from "../../services/apiDoctor";
 import './custom.css'
+import SearchComponent from "../Search/SearchComponent";
 
 const QuanLyLichHen = () => {
 
@@ -25,6 +26,7 @@ const QuanLyLichHen = () => {
     const [openViewDH, setOpenViewDH] = useState(false)
     const [dataViewDH, setDataViewDH] = useState(null)
     const user = useSelector(state => state.accountDoctor.user._id)
+    const [searchValue, setSearchValue] = useState(''); // State lưu giá trị tìm kiếm
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [dataBenhNhan, setDataBenhNhan] = useState(null);
@@ -43,6 +45,9 @@ const QuanLyLichHen = () => {
         if (user) {
             query += `&idDoctor=${encodeURIComponent(user)}`;
         } 
+        if (searchValue) {
+            query += `&search=${encodeURIComponent(searchValue)}`;  // Thêm giá trị tìm kiếm vào query
+        }
         let res = await findAllLichHenByDoctor(query)
         console.log("res his order: ", res);
         if(res && res.data) {
@@ -54,7 +59,7 @@ const QuanLyLichHen = () => {
 
     useEffect(() => {
         findAllOrder()
-    },[user, current, pageSize, sortQuery])
+    },[user, current, pageSize, sortQuery, searchValue])
 
     const onChange = (pagination, filters, sorter, extra) => {
         console.log(">> check: pagination", pagination);
@@ -380,6 +385,13 @@ const QuanLyLichHen = () => {
         <>
             <Row>
                     <Col xs={24} sm={12} md={24} span={24}>
+                    <SearchComponent
+                        onSearch={(value) => {
+                            setSearchValue(value);  // Cập nhật giá trị tìm kiếm
+                            findAllOrder(value);    // Gọi hàm tìm kiếm khi có thay đổi
+                        }}
+                        placeholder="Tìm bệnh nhân theo tên hoặc email hoặc số điện thoại"
+                        />
                     <Table 
                         onChange={onChange}
                         pagination={{
