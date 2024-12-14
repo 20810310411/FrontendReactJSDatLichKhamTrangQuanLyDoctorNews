@@ -96,19 +96,22 @@ const UpdateDoctor = (props) => {
    
 
     const fetchAllChucVuDoctor = async () => {
-        let res = await fetchAllChucVu()
+        let query = `page=1&limit=1000`
+        let res = await fetchAllChucVu(query)
         if(res && res.data) {
             setDataChucVu(res.data)
         }
     }
     const fetchAllPhongKhamDoctor = async () => {
-        let res = await fetchAllPhongKham()
+        let query = `page=1&limit=1000`
+        let res = await fetchAllPhongKham(query)
         if(res && res.data) {
             setDataPhongKham(res.data)
         }
     }
     const fetchAllChuyenKhoaDoctor = async () => {
-        let res = await fetchAllChuyenKhoa()
+        let query = `page=1&limit=1000`
+        let res = await fetchAllChuyenKhoa(query)
         if(res && res.data) {
             setDataChuyenKhoa(res.data)
         }

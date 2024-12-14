@@ -1,7 +1,10 @@
 import { UserOutlined } from "@ant-design/icons"
-import { Avatar, Badge, Card, Collapse, Descriptions, Drawer } from "antd"
+import { Avatar, Badge, Button, Card, Collapse, Descriptions, Drawer } from "antd"
 import moment from 'moment-timezone';
 const { Meta } = Card;
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
+import { FaFileExport } from "react-icons/fa";
 
 const ViewLichHen = (props) => {
 
@@ -97,6 +100,39 @@ const ViewLichHen = (props) => {
        
     ];
 
+    const exportToPDF = () => {
+        const drawerContent = document.getElementById("drawer-content");
+      
+        if (!drawerContent) {
+          console.error("Drawer content not found!");
+          return;
+        }
+      
+        html2canvas(drawerContent, {
+            useCORS: true, 
+            allowTaint: true, 
+        }).then((canvas) => {
+            // Tạo pdf với kích thước trang A4
+            const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' là portrait (dọc), 'mm' là đơn vị đo, 'a4' là loại giấy
+
+            const imgData = canvas.toDataURL("image/png");
+
+            // Tính toán kích thước ảnh sao cho vừa với trang PDF (có thể thay đổi)
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            // Thêm ảnh vào PDF, cách 20px từ trên cùng (Y = 20px)
+            const marginTop = 20; // Khoảng cách từ trên cùng
+
+            // Thêm ảnh vào PDF (điều chỉnh toạ độ và kích thước ảnh cho phù hợp)
+            pdf.addImage(imgData, "PNG", 0, marginTop, pdfWidth, canvas.height * pdfWidth / canvas.width);
+
+            pdf.save(`LichHen-${dataViewDH?.patientName}.pdf`);
+        }).catch((error) => {
+            console.error("Error while capturing the content:", error);
+        });
+    };
+
     return (
         <Drawer
             closable
@@ -108,7 +144,13 @@ const ViewLichHen = (props) => {
             width={850}
             // height={600}
         >
-            <Descriptions bordered items={items} />
+             <div style={{textAlign: "center"}}>
+                <Button icon={<FaFileExport />} onClick={exportToPDF} size="large">Export PDF</Button>
+            </div>
+            <br/>
+            <div id="drawer-content"> 
+                <Descriptions bordered items={items} />
+            </div>
         </Drawer>
     )
 }

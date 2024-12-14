@@ -12,6 +12,7 @@ import { fetchAllDoctorByID } from "../../services/apiDoctor"
 import KeHoachKhamBenh from "../../components/KeHoachKhamBenh/KeHoachKhamBenh"
 import ModalDoiMK from "../../components/ModalDoiMK/ModalDoiMK"
 import BenhNhanCuaToi from "../../components/BenhNhanCuaToi/BenhNhanCuaToi"
+import CauHoi from "../../components/CauHoi/CauHoi"
 
 const Home = () => {
 
@@ -73,9 +74,10 @@ const Home = () => {
                 <div className="col-lg-3">
                     <div className="nav accout-dashborard-nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                     <button className="nav-link active" id="v-pills-profile-tab" data-bs-toggle="pill" data-bs-target="#v-pills-profile" type="button" role="tab" aria-controls="v-pills-profile" aria-selected="false"><i className="fa-regular fa-bag-shopping" />Lịch hẹn của tôi</button>
-                    <button className="nav-link" id="v-pills-BenhNhan-tab" data-bs-toggle="pill" data-bs-target="#v-pills-BenhNhan" type="button" role="tab" aria-controls="v-pills-profile" aria-selected="false"><i className="fa-regular fa-bag-shopping" />Bệnh nhân của tôi</button>
+                    <button className="nav-link" id="v-pills-BenhNhan-tab" data-bs-toggle="pill" data-bs-target="#v-pills-BenhNhan" type="button" role="tab" aria-controls="v-pills-profile" aria-selected="false"><i className="fa-solid fa-user-injured" />Bệnh nhân của tôi</button>
                     <button className="nav-link" id="v-pills-home-tab" data-bs-toggle="pill" data-bs-target="#v-pills-home" type="button" role="tab" aria-controls="v-pills-home" aria-selected="true"><i className="fa-regular fa-chart-line" />Thông tin của tôi</button>
                     <button className="nav-link" id="v-pills-messages-tab" data-bs-toggle="pill" data-bs-target="#v-pills-messages" type="button" role="tab" aria-controls="v-pills-messages" aria-selected="false"><i className="fa-sharp fa-regular fa-tractor" /> Cài đặt lịch trình</button>
+                    <button className="nav-link" id="v-pills-cauhoi-tab" data-bs-toggle="pill" data-bs-target="#v-pills-cauhoi" type="button" role="tab" aria-controls="v-pills-cauhoi" aria-selected="false"><i className="fa-sharp fa-regular fa-question-circle" />Câu hỏi của bệnh nhân</button>
                     <button className="nav-link" id="v-pills-settingsa-tab" data-bs-toggle="pill" data-bs-target="#v-pills-settingsa" type="button" role="tab" aria-controls="v-pills-settingsa" aria-selected="false"><i className="fa-light fa-user" />Đổi mật khẩu</button>
                     <button className="nav-link" id="v-pills-settingsb-tab" data-bs-toggle="pill" data-bs-target="#v-pills-settingsb" type="button" role="tab" aria-controls="v-pills-settingsb" aria-selected="false"><a onClick={() => logoutClick()}><i className="fa-light fa-right-from-bracket" />Đăng xuất</a></button>
                     </div>
@@ -93,6 +95,7 @@ const Home = () => {
                             </div>
                         </div>
 
+                        {/* Bệnh nhân của tôi */}
                         <div className="tab-pane fade" id="v-pills-BenhNhan" role="tabpanel" aria-labelledby="v-pills-BenhNhan-tab" tabIndex={0}>
                             <div className="order-table-account">
                             <div className="h2 title">Bệnh nhân của tôi</div>
@@ -117,6 +120,13 @@ const Home = () => {
                         <div className="tab-pane fade" id="v-pills-messages" role="tabpanel" aria-labelledby="v-pills-messages-tab" tabIndex={0}>
                             <div className="tracing-order-account">
                             <KeHoachKhamBenh/>
+                            </div>
+                        </div>   
+
+                        {/* câu hỏi */}
+                        <div className="tab-pane fade" id="v-pills-cauhoi" role="tabpanel" aria-labelledby="v-pills-cauhoi-tab" tabIndex={0}>
+                            <div className="tracing-order-account">
+                            <CauHoi/>
                             </div>
                         </div>                       
 
