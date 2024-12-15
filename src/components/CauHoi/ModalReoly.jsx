@@ -1,6 +1,7 @@
 import { Col, Divider, Form, Input, message, Modal, notification, Row, Switch } from "antd"
 import { useEffect, useState } from "react";
 import { traLoiCauHoiChoBN } from "../../services/apiDoctor";
+import { useSelector } from "react-redux";
 
 const ModalReoly = (props) => {
 
@@ -8,13 +9,17 @@ const ModalReoly = (props) => {
     const [form] = Form.useForm()
     const [loadingEditKhamxONG, setLoadingEditKhamxONG] = useState(false);
     const [checkKham, setCheckKham] = useState(false);
+    const user = useSelector(state => state.accountDoctor.user)
+    console.log("user doctor: ", user);
+    let idDoctor = user._id
+    
 
     const handleOk = async (values) => {
         const { _id, cauTraLoi, cauHoi, status,  email, firstName, lastName } = values
         console.log("_id, cauTraLoi, cauHoi, status: ", _id, cauTraLoi, cauHoi, status);
 
         setLoadingEditKhamxONG(true)
-        let res = await traLoiCauHoiChoBN(_id, cauTraLoi, cauHoi, status,  email, firstName, lastName)
+        let res = await traLoiCauHoiChoBN(_id, cauTraLoi, cauHoi, status,  email, firstName, lastName, idDoctor)
         if(res){
             message.success(res.message);
             setOpenReply(false)

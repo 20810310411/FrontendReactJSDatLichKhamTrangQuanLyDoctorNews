@@ -195,8 +195,8 @@ export const fetchCauHoi = (query) => {
     return axios.get(URL_BACKEND)
 }
 
-export const traLoiCauHoiChoBN = (_id, cauTraLoi, cauHoi, status, email, firstName, lastName) => {
+export const traLoiCauHoiChoBN = (_id, cauTraLoi, cauHoi, status, email, firstName, lastName, idDoctor) => {
     return axios.put('/api/cauhoi/tra-loi-cau-hoi', {
-        _id, cauTraLoi, cauHoi, status, email, firstName, lastName
+        _id, cauTraLoi, cauHoi, status, email, firstName, lastName, idDoctor
     })
 }
