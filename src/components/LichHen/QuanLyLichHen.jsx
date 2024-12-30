@@ -1,5 +1,5 @@
 import { Col, Divider, Form, Input, message, Modal, notification, Row, Space, Switch, Table, Tag, Tooltip } from "antd"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import moment from 'moment-timezone';
 import { CheckCircleOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { FaEye } from "react-icons/fa";
@@ -11,6 +11,9 @@ import { RiEdit2Fill } from "react-icons/ri";
 import { updateTTBN, xacNhanLich } from "../../services/apiDoctor";
 import './custom.css'
 import SearchComponent from "../Search/SearchComponent";
+import ModalEdit from "./ModalEdit";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
 
 const QuanLyLichHen = () => {
 
@@ -21,7 +24,8 @@ const QuanLyLichHen = () => {
     const [loadingOrder, setLoadingOrder] = useState(false);
     const [loadingEditKhamxONG, setLoadingEditKhamxONG] = useState(false);
     const [loadingXacNhanOrder, setLoadingXacNhanOrder] = useState(false);
-    const [sortQuery, setSortQuery] = useState("sort=createdAt");
+    const [sortQuery, setSortQuery] = useState("sort=createdAt&order=desc");
+    const editorRef = useRef(null);
 
     const [openViewDH, setOpenViewDH] = useState(false)
     const [dataViewDH, setDataViewDH] = useState(null)
@@ -31,8 +35,8 @@ const QuanLyLichHen = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [dataBenhNhan, setDataBenhNhan] = useState(null);
     const [checkKham, setCheckKham] = useState(false);
-    console.log("dataBenhNhan: ",dataBenhNhan);
-    
+    console.log("dataBenhNhan: ", dataBenhNhan);
+
     const [form] = Form.useForm()
 
     const findAllOrder = async () => {
@@ -40,17 +44,17 @@ const QuanLyLichHen = () => {
         let query = `page=${current}&limit=${pageSize}`
         if (sortQuery) {
             query += `&${sortQuery}`;
-        } 
+        }
         // Thêm tham số tìm kiếm vào query nếu có
         if (user) {
             query += `&idDoctor=${encodeURIComponent(user)}`;
-        } 
+        }
         if (searchValue) {
             query += `&search=${encodeURIComponent(searchValue)}`;  // Thêm giá trị tìm kiếm vào query
         }
         let res = await findAllLichHenByDoctor(query)
         console.log("res his order: ", res);
-        if(res && res.data) {
+        if (res && res.data) {
             setDataOrder(res.data?.findOrder)
             setTotal(res.data?.totalOrder)
         }
@@ -59,23 +63,24 @@ const QuanLyLichHen = () => {
 
     useEffect(() => {
         findAllOrder()
-    },[user, current, pageSize, sortQuery, searchValue])
+    }, [user, current, pageSize, sortQuery, searchValue])
 
     const onChange = (pagination, filters, sorter, extra) => {
         console.log(">> check: pagination", pagination);
-    
+        console.log(">> sorter", sorter);
+
         // nếu thay dổi trang: current
-        if(pagination && pagination.current){
-          if( +pagination.current !== +current){
-            setCurrent( +pagination.current) // ví dụ "5" -> 5
-          }
+        if (pagination && pagination.current) {
+            if (+pagination.current !== +current) {
+                setCurrent(+pagination.current) // ví dụ "5" -> 5
+            }
         }
-    
+
         // nếu thay đổi tổng số phần tử
-        if(pagination && pagination.current){
-          if( +pagination.pageSize !== +pageSize){
-            setPageSize( +pagination.pageSize) // ví dụ "5" -> 5
-          }
+        if (pagination && pagination.current) {
+            if (+pagination.pageSize !== +pageSize) {
+                setPageSize(+pagination.pageSize) // ví dụ "5" -> 5
+            }
         }
 
         if (sorter && sorter.field) {
@@ -84,8 +89,11 @@ const QuanLyLichHen = () => {
             if (newSortQuery !== sortQuery) {
                 setSortQuery(newSortQuery); // Only update if sort query changes
             }
+        } else if (!sorter) {
+            // Nếu không có sắp xếp cụ thể, mặc định sắp xếp theo thứ tự giảm dần (desc)
+            setSortQuery("sort=createdAt&order=desc");
         }
-    
+
         window.scrollTo({ top: 80, behavior: "smooth" });
     }
 
@@ -105,7 +113,8 @@ const QuanLyLichHen = () => {
             key: "benhnhan",
             render: (text, record) => (
                 <span style={{ fontWeight: "bold" }}>
-                    {record?.patientName}
+                    {record?.patientName} <br /> <span style={{ fontWeight: "500" }}> SĐT:</span> &nbsp;
+                    <span style={{ fontWeight: "500" }}>{record?.phone}</span>
                 </span>
             ),
             // width: 100
@@ -117,19 +126,92 @@ const QuanLyLichHen = () => {
             render: (text, record) => {
                 return (
                     <>
-                    {moment(record.createdAt)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD-MM-YYYY")}{" "}
-                    <span style={{ display: 'block' }}>
                         {moment(record.createdAt)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("HH:mm:ss")}
-                    </span>
+                            .tz("Asia/Ho_Chi_Minh")
+                            .format("DD-MM-YYYY")}{" "}
+                        <span style={{ display: 'block' }}>
+                            {moment(record.createdAt)
+                                .tz("Asia/Ho_Chi_Minh")
+                                .format("HH:mm:ss")}
+                        </span>
                     </>
                 );
             },
             sorter: true,
         },
+        // {
+        //     title: (
+        //         <span style={{ justifyContent: "center", display: "flex" }}>
+        //             Trạng thái
+        //         </span>
+        //     ),
+        //     key: "status",
+        //     dataIndex: "status",
+        //     render: (text, record) => {
+        //         const getStatusTagForTinhTrangDonHang = (status) => {
+        //             if (status === "Không Hủy") {
+        //                 return {
+        //                     color: "green",
+        //                     icon: <CheckCircleOutlined />,
+        //                 }; // khong huy
+        //             }
+        //             return {
+        //                 color: "red",
+        //                 icon: <ExclamationCircleOutlined />,
+        //             }; // da huy
+        //         };
+
+        //         const getStatusTagForTinhTrangThanhToan = (status) => {
+        //             return status === "Chưa đặt lịch"
+        //                 ? { color: "red", icon: <ExclamationCircleOutlined /> }
+        //                 : { color: "green", icon: <CheckCircleOutlined /> }; // "Đã Thanh Toán"
+        //         };
+        //         const getStatusTagForTrangThaiXacNhan = (status) => {
+        //             return status === "Chờ xác nhận"
+        //                 ? { color: "orange", icon: <ExclamationCircleOutlined /> }
+        //                 : { color: "green", icon: <CheckCircleOutlined /> }; // "Đã xác nhận"
+        //         };
+
+        //         const donHangTag = getStatusTagForTinhTrangDonHang(
+        //             record.trangThaiHuyDon
+        //         );
+        //         const thanhToanTag = getStatusTagForTinhTrangThanhToan(
+        //             record.trangThai
+        //         );
+        //         const trangThaiXacNhan = getStatusTagForTrangThaiXacNhan(
+        //             record.trangThaiXacNhan
+        //         );
+        //         return (
+        //             <div style={{ display: "flex", justifyContent: "center" }}>
+        //                 {record.trangThaiHuyDon === "Không Hủy" ? (
+        //                     <>
+        //                         <Tag
+        //                             color={thanhToanTag.color}
+        //                             icon={thanhToanTag.icon}
+        //                         >
+        //                             {/* {record.trangThai} */}
+        //                             Không Hủy
+        //                         </Tag>
+
+        //                         {/* <Tag
+        //                             color={trangThaiXacNhan.color}
+        //                             icon={trangThaiXacNhan.icon}
+        //                         >
+        //                             {record.trangThaiXacNhan}
+        //                         </Tag> */}
+        //                     </>
+        //                 ) : (
+        //                     <Tag
+        //                         color={donHangTag.color}
+        //                         icon={donHangTag.icon}
+        //                     >
+        //                         {record.trangThaiHuyDon}
+        //                     </Tag>
+        //                 )}
+        //             </div>
+        //         );
+        //     },
+        // },
         {
             title: (
                 <span style={{ justifyContent: "center", display: "flex" }}>
@@ -139,71 +221,61 @@ const QuanLyLichHen = () => {
             key: "status",
             dataIndex: "status",
             render: (text, record) => {
-                const getStatusTagForTinhTrangDonHang = (status) => {
-                    if (status === "Không Hủy") {
+                const getStatusTag = () => {
+                    // Kiểm tra nếu trangThaiHuyDon là "Đã Hủy"
+                    if (record.trangThaiHuyDon === 'Đã Hủy') {
+                        return {
+                            color: "red",
+                            icon: <ExclamationCircleOutlined />,
+                            label: "Đã Hủy",
+                        };
+                    }
+
+                    // Khi trangThaiXacNhan === false và trangThaiKham === false: Chờ xác nhận
+                    if (!record.trangThaiXacNhan && !record.trangThaiKham) {
+                        return {
+                            color: "orange",
+                            icon: <ExclamationCircleOutlined />,
+                            label: "Chờ xác nhận",
+                        };
+                    }
+                    // Khi trangThaiXacNhan === true và trangThaiKham === false: Không hủy
+                    if (record.trangThaiXacNhan && !record.trangThaiKham) {
+                        return {
+                            color: "blue",
+                            icon: <CheckCircleOutlined />,
+                            label: "Chờ khám",
+                        };
+                    }
+                    // Khi trangThaiKham === true: Đã khám
+                    if (record.trangThaiKham) {
                         return {
                             color: "green",
                             icon: <CheckCircleOutlined />,
-                        }; // khong huy
+                            label: "Đã khám",
+                        };
                     }
+                    // Mặc định trả về trạng thái "Chờ khám"
                     return {
-                        color: "red",
-                        icon: <ExclamationCircleOutlined />,
-                    }; // da huy
+                        color: "blue",
+                        icon: <CheckCircleOutlined />,
+                        label: "Chờ khám",
+                    };
                 };
 
-                const getStatusTagForTinhTrangThanhToan = (status) => {
-                    return status === "Chưa đặt lịch"
-                        ? { color: "red", icon: <ExclamationCircleOutlined /> }
-                        : { color: "green", icon: <CheckCircleOutlined /> }; // "Đã Thanh Toán"
-                };
-                const getStatusTagForTrangThaiXacNhan = (status) => {
-                    return status === "Chờ xác nhận"
-                        ? { color: "orange", icon: <ExclamationCircleOutlined /> }
-                        : { color: "green", icon: <CheckCircleOutlined /> }; // "Đã xác nhận"
-                };
+                const statusTag = getStatusTag();  // Lấy thông tin trạng thái dựa trên các điều kiện
 
-                const donHangTag = getStatusTagForTinhTrangDonHang(
-                    record.trangThaiHuyDon
-                );
-                const thanhToanTag = getStatusTagForTinhTrangThanhToan(
-                    record.trangThai
-                );
-                const trangThaiXacNhan = getStatusTagForTrangThaiXacNhan(
-                    record.trangThaiXacNhan
-                );
                 return (
                     <div style={{ display: "flex", justifyContent: "center" }}>
-                        {record.trangThaiHuyDon === "Không Hủy" ? (
-                            <>
-                                <Tag
-                                    color={thanhToanTag.color}
-                                    icon={thanhToanTag.icon}
-                                >
-                                    {/* {record.trangThai} */}
-                                    Không Hủy
-                                </Tag>
-
-                                {/* <Tag
-                                    color={trangThaiXacNhan.color}
-                                    icon={trangThaiXacNhan.icon}
-                                >
-                                    {record.trangThaiXacNhan}
-                                </Tag> */}
-                            </>
-                        ) : (
-                            <Tag
-                                color={donHangTag.color}
-                                icon={donHangTag.icon}
-                            >
-                                {record.trangThaiHuyDon}
-                            </Tag>
-                        )}
+                        <Tag color={statusTag.color} icon={statusTag.icon}>
+                            {statusTag.label}
+                        </Tag>
                     </div>
                 );
             },
         },
-        
+
+
         {
             title: (
                 <span style={{ justifyContent: "center", display: "flex" }}>
@@ -212,31 +284,32 @@ const QuanLyLichHen = () => {
             ),
             key: "status",
             dataIndex: "status",
-            width: 200, 
-            render:  (text, record) => {
+            width: 200,
+            render: (text, record) => {
                 return (
-                <>
-                    {record?.trangThaiKham === true ? (<>
-                    <div 
-                        style={{
-                            textAlign: "center",
-                            wordWrap: "break-word",    
-                            wordBreak: "break-all",    
-                            whiteSpace: "nowrap",      // Ngăn chặn xuống dòng
-                            overflow: "hidden",        // Ẩn phần vượt ra ngoài
-                            textOverflow: "ellipsis",  // Hiển thị dấu ba chấm
-                            maxWidth: "200px",         // Đặt chiều rộng tối đa
-                            display: "inline-block",   // Đảm bảo nội dung không bị tràn
-                        }}
-                    >
-                        {record?.benhAn}
-                    </div>
-                    </>) : (<>
-                        <p style={{color: "red", textAlign: "center"}}>chưa khám bệnh</p>
-                    </>)}                    
-                </>
+                    <>
+                        {record?.trangThaiKham === true ? (<>
+                            <div
+                                style={{
+                                    textAlign: "center",
+                                    wordWrap: "break-word",
+                                    wordBreak: "break-all",
+                                    whiteSpace: "nowrap",      // Ngăn chặn xuống dòng
+                                    overflow: "hidden",        // Ẩn phần vượt ra ngoài
+                                    textOverflow: "ellipsis",  // Hiển thị dấu ba chấm
+                                    maxWidth: "200px",         // Đặt chiều rộng tối đa
+                                    display: "inline-block",   // Đảm bảo nội dung không bị tràn
+                                    maxHeight: "50px"
+                                }}
+                                dangerouslySetInnerHTML={{ __html: record?.benhAn }}
+                            >
+                            </div>
+                        </>) : (<>
+                            <p style={{ color: "red", textAlign: "center" }}>chưa khám bệnh</p>
+                        </>)}
+                    </>
                 );
-            },            
+            },
         },
         // {
         //     title: "Thông tin",
@@ -283,56 +356,62 @@ const QuanLyLichHen = () => {
                         />
                     </Tooltip>
 
-                    <Tooltip
-                        title="Cập nhật ghi chú bệnh án"
-                        color="green"
-                        key="green"
-                    >
-                        <RiEdit2Fill 
-                            size={23}
-                            onClick={()=> {
-                                console.log("record", record);
-                                
-                                setIsModalOpen(true)
-                                setDataBenhNhan(record)
-                            }}
-                            style={{
-                                color: "orange",
-                                fontWeight: "bold",
-                                cursor: "pointer",
-                                fontSize: "18px",
-                            }} />
-                    </Tooltip>
-                           
-                <Switch 
-                    loading={loadingXacNhanOrder}
-                    checked={record.trangThaiXacNhan}  // Kiểm tra nếu trạng thái là "Đã xác nhận" để bật switch
-                    onChange={(checked) => onChangeCheck(checked, record)} 
-                    checkedChildren="Đã xác nhận"
-                    unCheckedChildren="Chờ xác nhận"
-                />
+                    {record.trangThaiHuyDon === 'Không Hủy' ? (<>
+                        {record.trangThaiXacNhan ? <>
+                            <Tooltip
+                                title="Cập nhật ghi chú bệnh án"
+                                color="green"
+                                key="green"
+                            >
+                                <RiEdit2Fill
+                                    size={23}
+                                    onClick={() => {
+                                        console.log("record", record);
+
+                                        setIsModalOpen(true)
+                                        setDataBenhNhan(record)
+                                    }}
+                                    style={{
+                                        color: "orange",
+                                        fontWeight: "bold",
+                                        cursor: "pointer",
+                                        fontSize: "18px",
+                                    }} />
+                            </Tooltip>
+                        </> : ''}
+
+                        <Switch
+                            loading={loadingXacNhanOrder}
+                            checked={record.trangThaiXacNhan}  // Kiểm tra nếu trạng thái là "Đã xác nhận" để bật switch
+                            onChange={(checked) => onChangeCheck(checked, record)}
+                            checkedChildren="Đã xác nhận"
+                            unCheckedChildren="Chờ xác nhận"
+                        />
+                    </>) : ''}
+
+
                 </Space>
             ),
         },
-    ];  
+    ];
 
     const onChangeCheck = async (checked, record) => {
         console.log("checked: ", checked);
-        
+
         const updatedStatus = checked ? true : false;  // "Đã xác nhận" khi bật, "Chờ xác nhận" khi tắt
-        
+
         try {
             setLoadingXacNhanOrder(true)
             const response = await xacNhanLich(record._id, updatedStatus)
-    
+
             if (response.data) {
                 // Ví dụ: cập nhật trạng thái trong data table của bạn
                 setDataOrder(prevData => {
-                    return prevData.map(acc => 
+                    return prevData.map(acc =>
                         acc._id === record._id ? { ...acc, trangThaiXacNhan: updatedStatus } : acc
                     );
                 });
-    
+
                 message.success("Cập nhật trạng thái thành công!");
             }
             setLoadingXacNhanOrder(false)
@@ -347,127 +426,175 @@ const QuanLyLichHen = () => {
     };
 
     useEffect(() => {
-        if (dataBenhNhan) {                              
+        setCheckKham(dataBenhNhan?.trangThaiKham)
+        if (dataBenhNhan) {
             const init = {
-                _id: dataBenhNhan?._id,                
-                benhAn: dataBenhNhan?.benhAn,                
-                trangThaiKham: dataBenhNhan?.trangThaiKham,                
+                _id: dataBenhNhan?._id,
+                benhAn: dataBenhNhan?.benhAn,
+                trangThaiKham: dataBenhNhan?.trangThaiKham,
             }
             console.log("init: ", init);
-            form.setFieldsValue(init);            
+            form.setFieldsValue(init);
+            if (editorRef.current) {
+                editorRef.current.setData(dataUpdateDoctor.benhAn || ''); // Set giá trị cho CKEditor
+            }
         }
         return () => {
             form.resetFields();
         }
-    },[dataBenhNhan])  
+    }, [dataBenhNhan])
 
     const handleOk = async (values) => {
         const { _id, benhAn, trangThaiKham } = values
         console.log("benhAn, trangThaiKham: ", benhAn, trangThaiKham);
 
         setLoadingEditKhamxONG(true)
-        let res = await updateTTBN(_id, benhAn, trangThaiKham)
-        if(res){
-            message.success(res.message);
-            setIsModalOpen(false)
-            form.resetFields();
-            await findAllOrder()
-        } else {
+        if (!trangThaiKham) {
+            // form.resetFields();
             notification.error({
                 message: 'Đã có lỗi xảy ra',
-                description: res.message
+                description: 'Chưa khám thì không được điền bệnh án'
             })
-        } 
-        setLoadingEditKhamxONG(false) 
+        } else {
+            let res = await updateTTBN(_id, benhAn, trangThaiKham)
+            if (res) {
+                message.success(res.message);
+                setIsModalOpen(false)
+                form.resetFields();
+                await findAllOrder()
+            } else {
+                notification.error({
+                    message: 'Đã có lỗi xảy ra',
+                    description: res.message
+                })
+            }
+        }
+        setLoadingEditKhamxONG(false)
     }
 
     return (
         <>
-            <Row gutter={[20,10]}>
+            <Row gutter={[20, 10]}>
                 <Col xs={24} sm={12} md={24} span={24}>
-                <SearchComponent
-                    onSearch={(value) => {
-                        setSearchValue(value);  // Cập nhật giá trị tìm kiếm
-                        findAllOrder(value);    // Gọi hàm tìm kiếm khi có thay đổi
-                    }}
-                    placeholder="Tìm bệnh nhân theo tên hoặc email hoặc số điện thoại"
+                    <SearchComponent
+                        onSearch={(value) => {
+                            setSearchValue(value);  // Cập nhật giá trị tìm kiếm
+                            findAllOrder(value);    // Gọi hàm tìm kiếm khi có thay đổi
+                        }}
+                        placeholder="Tìm bệnh nhân theo tên hoặc email hoặc số điện thoại"
                     />
                 </Col>
-                <Col xs={24} sm={12} md={24} span={24}>                
-                <Table 
-                    onChange={onChange}
-                    pagination={{
-                        current: current,
-                        pageSize: pageSize,
-                        showSizeChanger: true,
-                        total: total,
-                        showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} lịch hẹn</div>) }
-                    }}
-                    //  pagination={false}  // Tắt phân trang mặc định của Table
-                    loading={loadingOrder} 
-                    columns={columns} 
-                    dataSource={dataOrder} /> 
+                <Col xs={24} sm={12} md={24} span={24}>
+                    <Table
+                        onChange={onChange}
+                        pagination={{
+                            current: current,
+                            pageSize: pageSize,
+                            showSizeChanger: true,
+                            total: total,
+                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} lịch hẹn</div>) }
+                        }}
+                        //  pagination={false}  // Tắt phân trang mặc định của Table
+                        loading={loadingOrder}
+                        columns={columns}
+                        dataSource={dataOrder} />
                 </Col>
 
                 <ViewLichHen
-                openViewDH={openViewDH}
-                dataViewDH={dataViewDH}
-                setOpenViewDH={setOpenViewDH}
-                setDataViewDH={setDataViewDH}
+                    openViewDH={openViewDH}
+                    dataViewDH={dataViewDH}
+                    setOpenViewDH={setOpenViewDH}
+                    setDataViewDH={setDataViewDH}
                 />
 
-                <Modal 
+                {/* <ModalEdit
+                isModalOpen={isModalOpen}
+                setIsModalOpen={setIsModalOpen}
+                dataBenhNhan={dataBenhNhan}
+                /> */}
+
+                <Modal
                     title={`Chỉnh sửa lịch khám bệnh cho bệnh nhân ${dataBenhNhan?.patientName}`}
-                    open={isModalOpen} 
-                    onOk={() => form.submit()} 
-                    style={{marginTop: "50px"}}
-                    width={700} 
+                    open={isModalOpen}
+                    onOk={() => form.submit()}
+                    style={{ marginTop: "50px", height: "1000px" }}
+                    width={700}
                     maskClosable={false}
                     loading={loadingEditKhamxONG}
                     onCancel={() => setIsModalOpen(false)}>
-                        <Form
+                    <Form
                         form={form}
-                        onFinish={handleOk}  
-                        >
-                            <Divider/>
-                            <Row gutter={[20,85]}>
-                                <Form.Item hidden name="_id" ><Input /></Form.Item>
-                                <Col span={24} md={24} sm={24} xs={24}>
-                                    <Form.Item
-                                        layout="vertical"
-                                        label="Chi tiết bệnh án"
-                                        name="benhAn"
-                                        // rules={[
-                                        //     {
-                                        //         required: true,
-                                        //         message: 'Vui lòng nhập đầy đủ thông tinị!',
-                                        //     },                                        
-                                        // ]}
-                                    >
-                                    <Input.TextArea row={5} style={{height: "100px"}}/>
-                                    </Form.Item>
-                                </Col>
+                        onFinish={handleOk}
+                        layout="vertical"
+                    >
+                        <Divider />
+                        <Row gutter={[20, 5]}>
+                            <Form.Item hidden name="_id" ><Input /></Form.Item>
+                            <Col span={24} md={24} sm={24} xs={24}>
+                                <Form.Item
+                                    layout="vertical"
+                                    label="Chi tiết bệnh án"
+                                    name="benhAn"
+                                // rules={[
+                                //     {
+                                //         required: true,
+                                //         message: 'Vui lòng nhập đầy đủ thông tinị!',
+                                //     },                                        
+                                // ]}
+                                >
+                                    {/* <Input.TextArea row={5} style={{ height: "100px" }} /> */}
+                                    <CKEditor
+                                        editor={ClassicEditor}
+                                        config={{
+                                            toolbar: [
+                                                'heading', '|',
+                                                'bold', 'italic', 'underline', '|',
+                                                'fontColor', 'fontFamily', '|', // Thêm màu chữ và kiểu chữ
+                                                'link', 'bulletedList', 'numberedList', '|',
+                                                'insertTable', '|',
+                                                'imageUpload', 'blockQuote', 'undo', 'redo'
+                                            ],
+                                            // Other configurations
+                                            ckfinder: {
+                                                uploadUrl: `${import.meta.env.VITE_BACKEND_URL}/api/doctor/upload/`, // Đường dẫn đến handler upload  -- van dang loi
+                                            },
+                                        }}
+                                        data={form.getFieldValue('benhAn') || ''} // Thiết lập giá trị từ form
+                                        onInit={(editor) => {
+                                            editorRef.current = editor; // Gán ref khi CKEditor khởi tạo
+                                        }}
+                                        onChange={(event, editor) => {
+                                            const data = editor.getData();
+                                            form.setFieldsValue({ benhAn: data }); // Cập nhật giá trị cho form
+                                            console.log({ data }); // Lấy dữ liệu khi có thay đổi
+                                        }}
+                                        style={{
+                                            height: '500px', // Đặt chiều cao cho CKEditor
+                                        }}
+                                    />
+                                </Form.Item>
+                            </Col>
 
-                                <Col span={24} md={24} sm={24} xs={24}>
-                                    <Form.Item
-                                        layout="vertical"
-                                        label="Trạng thái khám bệnh"
-                                        name="trangThaiKham"                                    
-                                    >
-                                    <Switch 
-                                    style={{width: "150px"}}
+                            <Col span={24} md={24} sm={24} xs={24}>
+                                <Form.Item
+                                    layout="vertical"
+                                    label="Trạng thái khám bệnh"
+                                    name="trangThaiKham"
+                                >
+                                    <Switch
+                                        style={{ width: "150px" }}
                                         checked={checkKham}  // Kiểm tra nếu trạng thái là "Đã xác nhận" để bật switch
-                                        onChange={(checked) => onChangeCheckKham(checked)} 
+                                        onChange={(checked) => onChangeCheckKham(checked)}
                                         checkedChildren="Đã khám xong"
                                         unCheckedChildren="Chưa được khám"
                                     />
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </Form>
-                        <br/>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                    </Form>
+                    <br />
                 </Modal>
-        </Row>
+            </Row>
         </>
     )
 }
