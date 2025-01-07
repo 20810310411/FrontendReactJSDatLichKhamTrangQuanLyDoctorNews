@@ -1,4 +1,4 @@
-import { Col, Divider, Form, Input, message, Modal, notification, Row, Space, Switch, Table, Tag, Tooltip } from "antd"
+import { Col, Divider, Form, Input, message, Modal, notification, Row, Select, Space, Switch, Table, Tag, Tooltip } from "antd"
 import { useEffect, useRef, useState } from "react"
 import moment from 'moment-timezone';
 import { CheckCircleOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
@@ -35,6 +35,8 @@ const QuanLyLichHen = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [dataBenhNhan, setDataBenhNhan] = useState(null);
     const [checkKham, setCheckKham] = useState(false);
+    const [selectedLoaiSP, setSelectedLoaiSP] = useState([]);
+    const [selectedChoXacNhan, setSelectedChoXacNhan] = useState([]);
     console.log("dataBenhNhan: ", dataBenhNhan);
 
     const [form] = Form.useForm()
@@ -51,6 +53,9 @@ const QuanLyLichHen = () => {
         }
         if (searchValue) {
             query += `&search=${encodeURIComponent(searchValue)}`;  // Thêm giá trị tìm kiếm vào query
+        }        
+        if (selectedLoaiSP !== undefined && selectedLoaiSP !== null) {
+            query += `&locTheoLoai=${encodeURIComponent(selectedLoaiSP)}`;
         }
         let res = await findAllLichHenByDoctor(query)
         console.log("res his order: ", res);
@@ -60,6 +65,14 @@ const QuanLyLichHen = () => {
         }
         setLoadingOrder(false)
     }
+
+    useEffect(() => {
+        if (selectedLoaiSP !== undefined && selectedLoaiSP !== null) {
+            findAllOrder();
+        } else {
+            findAllOrder();
+        }
+    }, [selectedLoaiSP]);
 
     useEffect(() => {
         findAllOrder()
@@ -471,11 +484,47 @@ const QuanLyLichHen = () => {
         }
         setLoadingEditKhamxONG(false)
     }
+    const onChangeTheoLoai = async (e) => {
+        console.log("e: ", e);
+
+        // Cập nhật state với các giá trị đã lọc
+        setSelectedLoaiSP(e);
+    }
 
     return (
         <>
-            <Row gutter={[20, 10]}>
-                <Col xs={24} sm={12} md={24} span={24}>
+            <Row gutter={[20, 25]}>
+                <Col xs={10} sm={10} md={10} span={10}>
+                    <Select
+                        // size="large"
+                        showSearch
+                        // mode="multiple"
+                        placeholder="Lọc theo trạng thái khám"
+                        value={selectedLoaiSP}
+                        onChange={(e) => onChangeTheoLoai(e)}
+                        style={{
+                            width: '100%',
+                        }}
+                        options={[
+                            {
+                                value: 'choxacnhan',
+                                label: 'Chờ xác nhận',
+                            },
+                            {
+                                value: 'chokham',
+                                label: 'Chờ khám',
+                            },
+                            {
+                                value: 'dakham',
+                                label: 'Đã khám',
+                            },
+                        ]}
+                        filterOption={(input, option) => {
+                            return option.label.toLowerCase().includes(input.toLowerCase()); // Tìm kiếm trong 'label' của từng option
+                        }}
+                    />
+                </Col>
+                <Col xs={14} sm={14} md={14} span={14}>
                     <SearchComponent
                         onSearch={(value) => {
                             setSearchValue(value);  // Cập nhật giá trị tìm kiếm
@@ -483,8 +532,10 @@ const QuanLyLichHen = () => {
                         }}
                         placeholder="Tìm bệnh nhân theo tên hoặc email hoặc số điện thoại"
                     />
+
                 </Col>
-                <Col xs={24} sm={12} md={24} span={24}>
+
+                <Col xs={24} sm={24} md={24} span={24}>
                     <Table
                         onChange={onChange}
                         pagination={{

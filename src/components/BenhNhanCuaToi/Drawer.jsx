@@ -19,6 +19,7 @@ const DrawerBN = (props) => {
         closable={false}
         onClose={onClose}
         open={openView}
+        width={500}
         // key={placement}
       >
         <ul>
@@ -31,7 +32,8 @@ const DrawerBN = (props) => {
                         <strong>Lí do khám:</strong> {item.lidokham || ''}    <br/>                            
                         <strong>Bệnh án:</strong> &nbsp;
                         <span style={{ whiteSpace: "pre-wrap", maxWidth: "500px" }}>
-                            {item.benhAn || 'Chưa có bệnh án'}
+                            <div className="truncate"  dangerouslySetInnerHTML={{ __html: item.benhAn || 'Chưa có bệnh án' }} />
+                            {/* {item.benhAn || 'Chưa có bệnh án'} */}
                         </span>
                     </li>
                     <Divider/>
