@@ -53,7 +53,7 @@ const QuanLyLichHen = () => {
         }
         if (searchValue) {
             query += `&search=${encodeURIComponent(searchValue)}`;  // Thêm giá trị tìm kiếm vào query
-        }        
+        }
         if (selectedLoaiSP !== undefined && selectedLoaiSP !== null) {
             query += `&locTheoLoai=${encodeURIComponent(selectedLoaiSP)}`;
         }
@@ -68,6 +68,8 @@ const QuanLyLichHen = () => {
 
     useEffect(() => {
         if (selectedLoaiSP !== undefined && selectedLoaiSP !== null) {
+            findAllOrder();
+        } else if (selectedLoaiSP === 'tatca') {
             findAllOrder();
         } else {
             findAllOrder();
@@ -133,20 +135,14 @@ const QuanLyLichHen = () => {
             // width: 100
         },
         {
-            title: "Ngày đặt lịch",
-            dataIndex: "createdAt",
-            key: "createdAt",
+            title: "Lịch hẹn",
+            dataIndex: "ngayKhamBenh",
+            key: "ngayKhamBenh",
             render: (text, record) => {
                 return (
                     <>
-                        {moment(record.createdAt)
-                            .tz("Asia/Ho_Chi_Minh")
-                            .format("DD-MM-YYYY")}{" "}
-                        <span style={{ display: 'block' }}>
-                            {moment(record.createdAt)
-                                .tz("Asia/Ho_Chi_Minh")
-                                .format("HH:mm:ss")}
-                        </span>
+                        {(record.ngayKhamBenh)} {'  '} <br/> {(record.tenGioKham)}
+
                     </>
                 );
             },
@@ -494,7 +490,7 @@ const QuanLyLichHen = () => {
     return (
         <>
             <Row gutter={[20, 25]}>
-                <Col xs={10} sm={10} md={10} span={10}>
+                <Col xs={4} sm={4} md={4} span={4}>
                     <Select
                         // size="large"
                         showSearch
@@ -507,6 +503,10 @@ const QuanLyLichHen = () => {
                         }}
                         options={[
                             {
+                                value: 'tatca',
+                                label: 'Tất cả',
+                            },
+                            {
                                 value: 'choxacnhan',
                                 label: 'Chờ xác nhận',
                             },
@@ -518,13 +518,17 @@ const QuanLyLichHen = () => {
                                 value: 'dakham',
                                 label: 'Đã khám',
                             },
+                            {
+                                value: 'dahuy',
+                                label: 'Đã hủy',
+                            },
                         ]}
                         filterOption={(input, option) => {
                             return option.label.toLowerCase().includes(input.toLowerCase()); // Tìm kiếm trong 'label' của từng option
                         }}
                     />
                 </Col>
-                <Col xs={14} sm={14} md={14} span={14}>
+                <Col xs={20} sm={20} md={20} span={20}>
                     <SearchComponent
                         onSearch={(value) => {
                             setSearchValue(value);  // Cập nhật giá trị tìm kiếm
