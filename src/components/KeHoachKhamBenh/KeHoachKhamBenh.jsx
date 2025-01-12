@@ -146,7 +146,7 @@ const KeHoachKhamBenh = () => {
         // },
         ...(Array.isArray(dataDoctor.thoiGianKham) && dataDoctor.thoiGianKham.length > 0
           ? dataDoctor.thoiGianKham.map((item) => ({
-              title: item.date,
+              title: moment(item.date, 'YYYY-MM-DD').format('DD/MM/YYYY'),
               dataIndex: item.date,
               key: item.date,
               render: (times) =>
@@ -393,14 +393,14 @@ const KeHoachKhamBenh = () => {
                     </Form>
                 </Col>
                 <Col span={24} >
-                    <div style={{textAlign: "center"}}>
+                    <div style={{textAlign: "center", }}>
                         <h3 >Lịch khám bệnh của tôi</h3>
                         <Table
                             columns={columns}
                             dataSource={data}
                             bordered
                             pagination={false}
-                            style={{ width: '60%', margin: '20px auto', textAlign: 'center' }}
+                            style={{ width: '100%', margin: '20px ', textAlign: 'center',  }}
                         />
                     </div>
                 </Col>
