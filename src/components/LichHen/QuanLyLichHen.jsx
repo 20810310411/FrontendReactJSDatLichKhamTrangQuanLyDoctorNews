@@ -8,12 +8,13 @@ import { findAllLichHenByDoctor } from "../../services/doctorAPI";
 import ViewLichHen from "./ViewLichHen";
 import React from "react";
 import { RiEdit2Fill } from "react-icons/ri";
-import { updateTTBN, xacNhanLich } from "../../services/apiDoctor";
+import { deleteLichHenn, updateTTBN, xacNhanLich } from "../../services/apiDoctor";
 import './custom.css'
 import SearchComponent from "../Search/SearchComponent";
 import ModalEdit from "./ModalEdit";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
+import { IoMdCloseCircle } from "react-icons/io";
 
 const QuanLyLichHen = () => {
 
@@ -112,6 +113,15 @@ const QuanLyLichHen = () => {
         window.scrollTo({ top: 80, behavior: "smooth" });
     }
 
+    const deleteLichHen = async (id) => {
+
+        const res = await deleteLichHenn(id)
+        if (res && res.data) {
+            message.success('hủy lịch thành công')
+            await findAllOrder()
+        }
+    }
+
     const columns = [
         {
             title: "STT",
@@ -141,7 +151,7 @@ const QuanLyLichHen = () => {
             render: (text, record) => {
                 return (
                     <>
-                        {(record.ngayKhamBenh)} {'  '} <br/> {(record.tenGioKham)}
+                        {(record.ngayKhamBenh)} {'  '} <br /> {(record.tenGioKham)}
 
                     </>
                 );
@@ -272,12 +282,31 @@ const QuanLyLichHen = () => {
                     };
                 };
 
+                const getStatusTagThanhToan = () => {
+                    if (record.trangThaiThanhToan) {
+                        return {
+                            color: "green",
+                            icon: <CheckCircleOutlined />,
+                            label: "Đã thanh toán",
+                        };
+                    }
+                    // Mặc định trả về trạng thái "Chờ khám"
+                    return {
+                        color: "red",
+                        icon: <ExclamationCircleOutlined />,
+                        label: "Chưa thanh toán",
+                    };
+                };
                 const statusTag = getStatusTag();  // Lấy thông tin trạng thái dựa trên các điều kiện
+                const statusTagThanhToan = getStatusTagThanhToan();  // Lấy thông tin trạng thái dựa trên các điều kiện
 
                 return (
                     <div style={{ display: "flex", justifyContent: "center" }}>
                         <Tag color={statusTag.color} icon={statusTag.icon}>
                             {statusTag.label}
+                        </Tag>
+                        <Tag color={statusTagThanhToan.color} icon={statusTagThanhToan.icon}>
+                            {statusTagThanhToan.label}
                         </Tag>
                     </div>
                 );
@@ -344,7 +373,135 @@ const QuanLyLichHen = () => {
             key: "action",
             render: (_, record) => (
                 <Space size="middle">
-                    <Tooltip
+                    {!record?.trangThaiXacNhan ? (<>
+                        <Tooltip
+                            title="Hủy lịch này"
+                            color={"green"}
+                            key={"green"}
+                        >
+                            <IoMdCloseCircle
+                                size={23}
+                                style={{
+                                    color: "red",
+                                    fontWeight: "bold",
+                                    cursor: "pointer",
+                                    fontSize: "18px",
+                                }}
+                                onClick={() => deleteLichHen(record._id)}
+                            />
+                        </Tooltip>
+
+                        <Tooltip
+                            title="Xem chi tiết lịch hẹn này"
+                            color={"green"}
+                            key={"green"}
+                        >
+                            <FaEye
+                                size={23}
+                                style={{
+                                    color: "green",
+                                    fontWeight: "bold",
+                                    cursor: "pointer",
+                                    fontSize: "18px",
+                                }}
+                                onClick={() => {
+                                    console.log("record: ", record);
+                                    setOpenViewDH(true);
+                                    setDataViewDH(record);
+                                }}
+                            />
+                        </Tooltip>
+
+                        {record.trangThaiHuyDon === 'Không Hủy' ? (<>
+                            {record.trangThaiXacNhan ? <>
+                                <Tooltip
+                                    title="Cập nhật ghi chú bệnh án"
+                                    color="green"
+                                    key="green"
+                                >
+                                    <RiEdit2Fill
+                                        size={23}
+                                        onClick={() => {
+                                            console.log("record", record);
+
+                                            setIsModalOpen(true)
+                                            setDataBenhNhan(record)
+                                        }}
+                                        style={{
+                                            color: "orange",
+                                            fontWeight: "bold",
+                                            cursor: "pointer",
+                                            fontSize: "18px",
+                                        }} />
+                                </Tooltip>
+                            </> : ''}
+
+                            <Switch
+                                loading={loadingXacNhanOrder}
+                                checked={record.trangThaiXacNhan}  // Kiểm tra nếu trạng thái là "Đã xác nhận" để bật switch
+                                onChange={(checked) => onChangeCheck(checked, record)}
+                                checkedChildren="Đã xác nhận"
+                                unCheckedChildren="Chờ xác nhận"
+                            />
+                        </>) : ''}
+                    </>) : <>
+                        <Tooltip
+                            title="Xem chi tiết lịch hẹn này"
+                            color={"green"}
+                            key={"green"}
+                        >
+                            <FaEye
+                                size={23}
+                                style={{
+                                    color: "green",
+                                    fontWeight: "bold",
+                                    cursor: "pointer",
+                                    fontSize: "18px",
+                                }}
+                                onClick={() => {
+                                    console.log("record: ", record);
+                                    setOpenViewDH(true);
+                                    setDataViewDH(record);
+                                }}
+                            />
+                        </Tooltip>
+
+                        {record.trangThaiHuyDon === 'Không Hủy' ? (<>
+                            {record.trangThaiXacNhan ? <>
+                                <Tooltip
+                                    title="Cập nhật ghi chú bệnh án"
+                                    color="green"
+                                    key="green"
+                                >
+                                    <RiEdit2Fill
+                                        size={23}
+                                        onClick={() => {
+                                            console.log("record", record);
+
+                                            setIsModalOpen(true)
+                                            setDataBenhNhan(record)
+                                        }}
+                                        style={{
+                                            color: "orange",
+                                            fontWeight: "bold",
+                                            cursor: "pointer",
+                                            fontSize: "18px",
+                                        }} />
+                                </Tooltip>
+                            </> : ''}
+
+                            <Switch
+                                loading={loadingXacNhanOrder}
+                                checked={record.trangThaiXacNhan}  // Kiểm tra nếu trạng thái là "Đã xác nhận" để bật switch
+                                onChange={(checked) => onChangeCheck(checked, record)}
+                                checkedChildren="Đã xác nhận"
+                                unCheckedChildren="Chờ xác nhận"
+                            />
+                        </>) : ''}
+                    </>}
+
+
+                    {/* <Tooltip
                         title="Xem chi tiết lịch hẹn này"
                         color={"green"}
                         key={"green"}
@@ -396,7 +553,7 @@ const QuanLyLichHen = () => {
                             checkedChildren="Đã xác nhận"
                             unCheckedChildren="Chờ xác nhận"
                         />
-                    </>) : ''}
+                    </>) : ''} */}
 
 
                 </Space>

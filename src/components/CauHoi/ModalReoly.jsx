@@ -1,8 +1,9 @@
 import { Col, Divider, Form, Input, message, Modal, notification, Row, Switch } from "antd"
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { traLoiCauHoiChoBN } from "../../services/apiDoctor";
 import { useSelector } from "react-redux";
-
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 const ModalReoly = (props) => {
 
     const {openReply, setOpenReply, dataCauHoiRep, setDataCauHoiRep, findAllOrder } = props
@@ -12,7 +13,7 @@ const ModalReoly = (props) => {
     const user = useSelector(state => state.accountDoctor.user)
     console.log("user doctor: ", user);
     let idDoctor = user._id
-    
+    const editorRef = useRef(null);
 
     const handleOk = async (values) => {
         const { _id, cauTraLoi, cauHoi, status,  email, firstName, lastName } = values
@@ -56,7 +57,11 @@ const ModalReoly = (props) => {
                 status: dataCauHoiRep?.status,                
             }
             console.log("init: ", init);
-            form.setFieldsValue(init);            
+            form.setFieldsValue(init);    
+            
+            if (editorRef.current) {
+                editorRef.current.setData(dataCauHoiRep.cauTraLoi || ''); // Set giá trị cho CKEditor
+            }
         }
         return () => {
             form.resetFields();
@@ -76,16 +81,17 @@ const ModalReoly = (props) => {
             title={`Trả lời cho bệnh nhân ${dataCauHoiRep?.lastName} ${dataCauHoiRep?.firstName}`}
             open={openReply} 
             onOk={() => form.submit()} 
-            width={700} 
+            width={800} 
+            // height={1000}
             maskClosable={false}
             loading={loadingEditKhamxONG}
             onCancel={cancel}>
                 <Form
-                form={form}
+                form={form}                
                 onFinish={handleOk}  
                 >
                     <Divider/>
-                    <Row gutter={[20,85]}>
+                    <Row gutter={[20,80]}>
                         <Form.Item hidden name="_id" ><Input /></Form.Item>
                         <Form.Item hidden name="email" ><Input /></Form.Item>
                         <Form.Item hidden name="lastName" ><Input /></Form.Item>
@@ -96,7 +102,7 @@ const ModalReoly = (props) => {
                                 label="Câu hỏi"
                                 name="cauHoi"                                
                             >
-                            <Input.TextArea disabled row={5} style={{height: "100px"}}/>
+                            <Input.TextArea disabled row={5} />
                             </Form.Item>
                         </Col>
 
@@ -106,9 +112,36 @@ const ModalReoly = (props) => {
                                 label="Trả lời câu hỏi"
                                 name="cauTraLoi"                                
                             >
-                            <Input.TextArea row={5} style={{height: "100px"}}/>
+                            <Input.TextArea row={5} />
+                            {/* <CKEditor
+                                editor={ClassicEditor}                                        
+                                config={{
+                                    toolbar: [
+                                        'heading', '|',
+                                        'bold', 'italic', 'underline', '|',
+                                        'fontColor', 'fontFamily', '|', // Thêm màu chữ và kiểu chữ
+                                        'link', 'bulletedList', 'numberedList', '|',
+                                        'insertTable', '|',
+                                        'imageUpload', 'blockQuote', 'undo', 'redo'
+                                    ],
+                                    // Other configurations
+                                    ckfinder: {
+                                        uploadUrl: '/path/to/your/upload/handler', // Đường dẫn đến handler upload
+                                    },
+                                }}
+                                onChange={(event, editor) => {
+                                    const data = editor.getData();
+                                    form.setFieldsValue({ cauTraLoi: data }); // Cập nhật giá trị cho form
+                                    console.log({ data }); // Lấy dữ liệu khi có thay đổi
+                                }}
+                                data={form.getFieldValue('cauTraLoi') || ''} // Thiết lập giá trị từ form
+                                onInit={(editor) => {
+                                    editorRef.current = editor; // Gán ref khi CKEditor khởi tạo
+                                }}
+                            /> */}
                             </Form.Item>
-                        </Col>
+                        </Col>                  
+
 
                         <Col span={24} md={24} sm={24} xs={24}>
                             <Form.Item
@@ -117,7 +150,7 @@ const ModalReoly = (props) => {
                                 name="status"                                    
                             >
                             <Switch 
-                            style={{width: "150px"}}
+                            style={{width: "150px",}}
                                 checked={checkKham}  // Kiểm tra nếu trạng thái là "Đã xác nhận" để bật switch
                                 onChange={(checked) => onChangeCheckKham(checked)} 
                                 checkedChildren="Đã trả lời"
